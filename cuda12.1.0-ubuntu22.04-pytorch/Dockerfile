@@ -1,0 +1,26 @@
+ARG CUDA_VERSION="12.1.0"
+ARG CUDNN_VERSION="8"
+ARG UBUNTU_VERSION="22.04"
+
+
+# Base NVidia CUDA Ubuntu image
+FROM nvidia/cuda:$CUDA_VERSION-cudnn$CUDNN_VERSION-devel-ubuntu$UBUNTU_VERSION
+
+# Install Python plus openssh, which is our minimum set of required packages.
+RUN apt-get update -y && \
+    apt-get install -y python3 python3-pip python3-venv && \
+    apt-get install -y --no-install-recommends openssh-server openssh-client git git-lfs && \
+    python3 -m pip install --upgrade pip && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+ENV PATH="/usr/local/cuda/bin:${PATH}"
+
+# Install pytorch
+RUN pip3 install --no-cache-dir -U torch torchvision torchaudio
+
+COPY --chmod=755 start.sh /start.sh
+
+WORKDIR /workspace
+
+CMD [ "/start.sh" ]
